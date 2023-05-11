@@ -14,7 +14,7 @@ const gui = new dat.GUI()
 // debug obj
 
 const debugObject ={}
-debugObject.envMapIntensity = 5
+debugObject.envMapIntensity = 1.6
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -28,6 +28,8 @@ const updateAllMaterials = ()=>{
         if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
             // child.material.envMap = environmentMap
             child.material.envMapIntensity = debugObject.envMapIntensity
+            child.castShadow = true
+            child.receiveShadow = true
         }
     })
 }
@@ -92,17 +94,29 @@ gltfLoader.load(
 // directional light
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 3)
-directionalLight.position.set(0.25,3,-2.24)
+directionalLight.position.set(-0.32,9.51,8.77)
+directionalLight.castShadow = true
 scene.add(directionalLight);
 
 /**
  * Helpers
  */
 
+
+// directional light
 const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, 0.2)
 directionalLightHelper.visible = false
 scene.add(directionalLightHelper)
 
+directionalLight.shadow.mapSize.set(1024,1024)
+directionalLight.shadow.camera.far = 20
+directionalLight.shadow.camera.near = 7
+directionalLight.shadow.normalBias = 0.05
+
+// directional light camera
+const directionalLightCameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera)
+directionalLightCameraHelper.visible = false
+scene.add(directionalLightCameraHelper)
 
 /**
  * GUI
@@ -123,7 +137,8 @@ folderDirectionalLight.add(directionalLight, 'intensity').min(0).max(5).step(0.0
 folderDirectionalLight.add(directionalLight.position, 'x').min(-10).max(10).step(0.01)
 folderDirectionalLight.add(directionalLight.position, 'y').min(-10).max(10).step(0.01)
 folderDirectionalLight.add(directionalLight.position, 'z').min(-10).max(10).step(0.01)
-folderDirectionalLight.add(directionalLightHelper, 'visible').name('Directional Light Helper')
+folderDirectionalLight.add(directionalLightHelper, 'visible').name('Light Helper')
+folderDirectionalLight.add(directionalLightCameraHelper, 'visible').name('Camera Helper')
 
 
 /**
@@ -174,6 +189,10 @@ renderer.physicallyCorrectLights = true
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 1.225
+
+// shadows
+renderer.shadowMap.enabled  = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
 // gui
 
 const folderRenderer = gui.addFolder('Renderer')
